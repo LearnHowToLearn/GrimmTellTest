@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Stylesheets/stylesheets.css">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+
+    <title>Prison_Of_Word</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- <header>
+      <form class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+          <label for="inputPassword2" class="sr-only">Password</label>
+          <input type="password" class="form-control" id="inputPassword2" placeholder="Password">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">輸入</button>
+      </form>
+    </header> -->
+
+        <!-- 文字顯示框 -->
+        <div id="showSentence" class="show-sentence" style="overflow: auto;">
+            <h4 id="sentence" style="font-family: 'Noto Sans TC', sans-serif;">
+                時光機把「我」傳到了一個「房間」，「檢視」一下周圍也許會有可以用的東西
+            </h4>
+        </div>
+
+        <!-- 放入三個詞彙 -->
+        <div class="take-three-words">
+            <div onclick="deleteWord(first)" class="first-word">
+                <p id="first"></p>
+            </div>
+            <div onclick="deleteWord(second)" class="second-word">
+                <p id="second"></p>
+            </div>
+            <div onclick="deleteWord(third)" class="third-word">
+                <p id="third"></p>
+            </div>
+            <input type="button" value="del" onclick="deleteWord(first,second,third)">
+        </div>
+
+        <!-- 詞彙庫 -->
+        <div id="total" class="words-library" style="overflow: auto;">
+            <!-- <ul class="nav nav-tabs" id="Tab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="total-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+            aria-selected="true">全</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="noun-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
+            aria-selected="false">名</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="verb-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact"
+            aria-selected="false">動</a>
+        </li>
+      </ul>
+      <div class="tab-content" id="TabContent">
+        <div class="tab-pane fade show active" id="total" role="tabpanel" aria-labelledby="home-tab"></div>
+        <div class="tab-pane fade" id="profile" role="noun" aria-labelledby="profile-tab"></div>
+        <div class="tab-pane fade" id="contact" role="verb" aria-labelledby="contact-tab"></div>
+      </div> -->
+        </div>
+
+        <!-- <footer> 測試
+      <button data-toggle-class="foo" data-target="#bar" type="button">開關</button>
+      <div id="bar"></div>
+      <button data-toggle-class="foo" data-target="#bar" type="button">開關</button>
+      <div id="bar"></div>
+    </footer> -->
+
+        <div id="note" style="display:none; position:fixed; top:30% ; left:auto;">
+            <img onclick="closeNote()" class="noteImg" src="/images/EDAP的書.gif" alt="note">
+        </div>
+
+        <div id="numericKeypad" style="display: none;">
+            <input type="text" id="text" class="text form-control col-9" disabled>
+            <button type="button" onclick="numericKeypad(1)" class="btn btn-outline-secondary col-3">1</button>
+            <button type="button" onclick="numericKeypad(2)" class="btn btn-outline-secondary col-3">2</button>
+            <button type="button" onclick="numericKeypad(3)" class="btn btn-outline-secondary col-3">3</button>
+            <button type="button" onclick="numericKeypad(4)" class="btn btn-outline-secondary col-3">4</button>
+            <button type="button" onclick="numericKeypad(5)" class="btn btn-outline-secondary col-3">5</button>
+            <button type="button" onclick="numericKeypad(6)" class="btn btn-outline-secondary col-3">6</button>
+            <button type="button" onclick="numericKeypad(7)" class="btn btn-outline-secondary col-3">7</button>
+            <button type="button" onclick="numericKeypad(8)" class="btn btn-outline-secondary col-3">8</button>
+            <button type="button" onclick="numericKeypad(9)" class="btn btn-outline-secondary col-3">9</button>
+            <button type="button" onclick="numericKeypad(11)" class="btn btn-outline-secondary col-3">清除</button>
+            <button type="button" onclick="numericKeypad(0)" class="btn btn-outline-secondary col-3">0</button>
+            <button type="button" onclick="numericKeypad(12)" class="btn btn-outline-secondary col-3">確認</button>
+        </div>
+
+    </div>
+
+    <!-- Optional JavaScript -->
+    <script>
+        sentenceChange();
+        var combinationArray = [];
+        var wipeBookAfter = false;
+
+        function sentenceChange() {
+            let sentence = document.getElementById("sentence").textContent;
+            let total = document.getElementById("total");
+            let ago_quotes = 0;//前括號位置
+            let after_quotes = 0;//後括號位置
+            while (sentence.indexOf("「", after_quotes) != -1) {//搜尋前括號
+                ago_quotes = sentence.indexOf("「", after_quotes);//紀錄前括號位置
+                after_quotes = sentence.indexOf("」", after_quotes + 1);//紀錄後括號位置
+                let newbt = document.createElement("button");//建立按鈕
+                newbt.textContent = sentence.substring(ago_quotes + 1, after_quotes);//擷取前後括號中間的文字
+                total.appendChild(newbt);//添加按鈕到詞彙庫
+                if (newbt.textContent == "檢視" || newbt.textContent == "擦拭" || newbt.textContent == "打開") {//分辨按鈕是動詞還是名詞
+                    newbt.style.borderColor = "yellow";//動詞框的顏色
+                    newbt.onclick = function () {//建立動詞按鈕功能
+                        const second = document.getElementById("second");
+                        if (second.textContent == "") {//判斷second格子是不是空的
+                            second.textContent = newbt.textContent;//將當前詞彙填入second格子
+                            combination();
+                        }
+                        else if (second.textContent == newbt.textContent) {//判斷second格子是不是當前詞彙
+                            second.textContent = "";//將second格子清空
+                        }
+                    }
+                } else {
+                    newbt.onclick = function () {//建立名詞按鈕功能
+                        const first = document.getElementById("first");
+                        const third = document.getElementById("third");
+                        if (first.textContent == "" && third.textContent != newbt.textContent) {//判斷first格子是空的且third格子不等於當前詞彙
+                            first.textContent = newbt.textContent;//將當前詞彙填入first格子
+                            combination();
+                        }
+                        else if (third.textContent == "" && first.textContent != newbt.textContent) {//判斷third格子是空的且first格子不等於當前詞彙
+                            third.textContent = newbt.textContent;//將當前詞彙填入third格子
+                            combination();
+                        }
+                        else {
+                            if (first.textContent == newbt.textContent) {//判斷first格子是不是當前詞彙
+                                first.textContent = "";//將first格子清空
+                            }
+                            else if (third.textContent == newbt.textContent) {//判斷third格子是不是當前詞彙
+                                third.textContent = "";//將third格子清空
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //判斷詞彙組合
+        function combination() {
+            if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "房間") {
+                document.getElementById("sentence").textContent = "這個房間雖然很大但只有少少的東西，只有一個快要爛掉的「書架」以及老舊的木製「書桌」而且這邊灰塵怎麼那麼重呀？哈啾！恐怖組織真的會把這裡當集會地點嗎？";
+                if (combinationArray[0] == null) {
+                    sentenceChange();
+                }
+                combinationArray[0] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "書桌") {
+                document.getElementById("sentence").textContent = "這個書桌上佈滿灰塵有夠髒的，書桌有個「抽屜」。";
+                if (combinationArray[1] == null) {
+                    sentenceChange();
+                }
+                combinationArray[1] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "抽屜") {
+                document.getElementById("sentence").textContent = "抽屜被鎖住了，我怎麼拉都拉不開，裡面似乎藏了什麼秘密，看來需要鑰匙才有辦法「打開」它。";
+                if (combinationArray[2] == null) {
+                    sentenceChange();
+                }
+                combinationArray[2] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "書架") {
+                document.getElementById("sentence").textContent = "書架滿是灰塵，有一塊「破布」一個「小鐵盒」以及一本「書」放在上面，為什麼這些東西會在這裡呀？是忘記帶走了嗎？";
+                if (combinationArray[3] == null) {
+                    sentenceChange();
+                }
+                combinationArray[3] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "小鐵盒") {
+                document.getElementById("sentence").textContent = "小鐵盒有一道密碼鎖，這裡怎麼東西都鎖起來啦，好麻煩唷。";
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "破布") {
+                document.getElementById("sentence").textContent = "一條破破的灰布，但摸起來手感好奇特唷，似乎是用來「擦拭」東西的。";
+                if (combinationArray[4] == null) {
+                    sentenceChange();
+                }
+                combinationArray[4] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "書") {
+                if (wipeBookAfter == true) {
+                    note.style.display = "block";
+                }
+                document.getElementById("sentence").textContent = "是本寫著EDAP的厚皮書，看來這裡真的是【EDAP】的秘密集會地點，裡面會不會藏有【EDAP】的資訊呢？";
+            } else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "書") {
+                document.getElementById("sentence").textContent = "內容艱澀難懂，這根本不是現代文字啊，翻一翻有張「紙條」掉了出來。";
+                if (combinationArray[5] == null) {
+                    sentenceChange();
+                }
+                combinationArray[5] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "紙條") {
+                document.getElementById("sentence").textContent = "【加熱表面自然浮現】，這是什麼意思呀？";
+            } else if (first.textContent == "破布" && second.textContent == "擦拭" && third.textContent == "書") {
+                document.getElementById("sentence").textContent = "摩擦造成的溫度使書本的封面產生變化，這封面是用什麼材質做的呀？";
+                wipeBookAfter = true;
+            } else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "小鐵盒") {
+                document.getElementById("numericKeypad").style.display = "block";
+                document.getElementById("sentence").textContent = "小鐵盒的密碼是多少呢...？";
+            } else if (first.textContent == "鑰匙" && second.textContent == "打開" && third.textContent == "抽屜") {
+                document.getElementById("sentence").textContent = "抽屜被打開了裡面放著一張「牛皮紙條」。逼逼逼 時光機發出聲響 時間要快到了！";
+                if (combinationArray[6] == null) {
+                    sentenceChange();
+                }
+                combinationArray[6] = 0;
+            } else if (first.textContent == "我" && second.textContent == "檢視" && third.textContent == "牛皮紙條") {
+                document.getElementById("sentence").textContent = "24°48'24.7\"N 120°58'34.8\"E";
+            }
+            //錯誤的組合
+            else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "房間") {
+                document.getElementById("sentence").textContent = "我已經在房間了，我是要打開什麼？";
+            } else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "抽屜") {
+                document.getElementById("sentence").textContent = "剛剛就知道鎖住了，不要浪費時間。";
+            } else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "書桌") {
+                document.getElementById("sentence").textContent = "書桌用看的就好了。";
+            } else if (first.textContent == "我" && second.textContent == "打開" && third.textContent == "破布") {
+                document.getElementById("sentence").textContent = "不要做無意義的事情。";
+            } else if (first.textContent == "我" && second.textContent == "擦拭" && third.textContent == "書桌") {
+                document.getElementById("sentence").textContent = "灰塵被我用手擦掉不少，看起來乾淨了點，但我手變的黑黑的都是灰塵。";
+            } else if (first.textContent == "我" && second.textContent == "擦拭" && third.textContent == "書架") {
+                document.getElementById("sentence").textContent = "灰塵被我用手擦掉不少，看起來乾淨了點，但我手變的黑黑的都是灰塵。";
+            } else if (first.textContent == "我" && second.textContent == "擦拭" && third.textContent == "抽屜") {
+                document.getElementById("sentence").textContent = "手摩擦到鑰匙孔讓我手破皮了。";
+            } else if (first.textContent == "我" && second.textContent == "擦拭" && third.textContent == "小鐵盒") {
+                document.getElementById("sentence").textContent = "鐵盒變亮了一點，但我手都快破皮了。";
+            } else if (first.textContent == "破布" && second.textContent == "擦拭" && third.textContent == "紙條") {
+                document.getElementById("sentence").textContent = "紙條被我弄破了！";
+                deleteButton("紙條");
+            }
+            else {
+                if (first.textContent != "" && second.textContent != "" && third.textContent != "") {
+                    document.getElementById("sentence").textContent = "我智商有那麼差嗎？想也知道不可能這樣做！";
+                }
+            }
+        }
+
+        //點擊格子清除詞彙
+        function deleteWord(wordKind1, wordKind2, wordKind3) {
+            wordKind1.textContent = "";
+            wordKind2.textContent = "";
+            wordKind3.textContent = "";
+        }
+
+        //刪除按鈕
+        function deleteButton(buttonKind) {
+            var totalButton = document.querySelectorAll("button");
+            alert(buttonKind);
+            // for (let i = 0; i < totalButton.length; i++) {
+            //     if (totalButton[i].textContent.indexOf(buttonKind) == -1) {
+            //         var obj = obj.parentNode;
+            //         obj.remove(totalButton[i]);
+            //     }
+            // }
+        }
+
+        //紙條顯示/隱藏
+        var note = document.getElementById("note");
+        function closeNote() {
+            note.style.display = "none";
+        }
+
+        //數字鍵盤
+        function numericKeypad(number) {
+            var text = document.getElementById("text").value;
+            if (number == 11) {
+                document.getElementById("text").value = "";
+            } else if (number == 12) {
+                if (document.getElementById("text").value == 8649) {
+                    document.getElementById("sentence").textContent = "小鐵盒被打開了裡面是一把「鑰匙」，哦哦有鑰匙了，看來離真相又更進一步了！";
+                    sentenceChange();
+                } else {
+                    document.getElementById("sentence").textContent = "密碼似乎不對，確認一下再輸入吧...";
+                    document.getElementById("text").value = "";
+                }
+                document.getElementById("numericKeypad").style.display = "none";
+            } else {
+                if (text.length < 4) {
+                    document.getElementById("text").value += number;
+                }
+            }
+        }
+
+        //研究一下Canvas 圖像繪製
+
+        // var numbers = document.getElementsByClassName("btn");
+        // for (let i = 0; i < numbers.length; i++) {
+        //   numbers[i].onclick = function () {
+        //     var textElement = document.getElementById("text");
+        //     textElement.value += i + 1;
+        //   }
+        // }
+
+        // function combination() {
+        //   switch (first.textContent) {
+        //     case "我":
+        //       switch (second.textContent) {
+        //         case "檢視":
+        //           switch (third.textContent) {
+        //             case "寶箱":
+        //               document.getElementById("sentence").textContent = "寶箱被上了鎖，旁邊還貼有一張「紙條」，似乎需要「輸入」「密碼」才能打開";
+        //               sentenceChange();
+        //               break;
+        //             case "紙條":
+        //               break;
+        //           }
+        //           break;
+        //       }
+        //       break;
+        //   }
+        // }
+
+        // const toggleClass = document.querySelectorAll('[data-toggle-class]');
+        // if (toggleClass) {
+        //   for (let i = 0; i < toggleClass.length; i += 1) {
+        //     const elem = toggleClass[i];
+        //     elem.addEventListener('click', () => {
+        //       const className = elem.getAttribute('data-toggle-class');
+        //       const target = elem.getAttribute('data-target').slice(1);
+        //       document.getElementById(target).classList.toggle(className);
+        //     });
+        //   }
+        // }
+
+        //封鎖右鍵和F12功能
+        // lock = function (theEvent) {
+        //     if (theEvent != null) {
+        //         event = theEvent;
+        //     }
+        //     // 擋滑鼠右鍵選單事件
+        //     if (event.type == "contextmenu") {
+        //         return false;
+        //         // 擋滑鼠中鍵與右鍵事件
+        //     } else if (event.type == "mousedown") {
+        //         if (event.button == 2 || event.button == 3) {
+        //             return false;
+        //         }
+        //         // 擋 IE 按下 F1 鈕時會觸發的 onhelp 事件
+        //     } else if (event.type == "help") {
+        //         return false;
+        //         // 擋特定按鍵
+        //     } else if (event.type == "keydown") {
+        //         // 擋 alt、ctrl 鍵
+        //         if (event.altKey || event.ctrlKey) {
+        //             return false;
+        //         }
+        //         // 擋 F1 ~ F12 功能鍵，其中此種寫法只能擋 FF 的 F1 鍵，無法擋 IE 的 F1 鍵
+        //         if (event.keyCode >= 112 && event.keyCode <= 123) {
+        //             try {
+        //                 // IE 要將 keyCode 設為 0 才能真正擋下 F2 ~ F12 功能鍵，
+        //                 // 但 FF 會丟 Exception，所以用 try-cache 擋住
+        //                 event.keyCode = 0;
+        //             } catch (e) { }
+        //             return false;
+        //         }
+        //     }
+        // }
+        // document.onmousedown = lock;
+        // document.oncontextmenu = lock;
+        // document.onkeydown = lock;
+        // window.onhelp = lock;
+    </script>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
